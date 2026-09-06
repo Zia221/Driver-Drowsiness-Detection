@@ -1,6 +1,10 @@
 import time
 import threading
-import winsound
+
+try:
+    import winsound
+except ImportError:
+    winsound = None
 
 import av
 import streamlit as st
@@ -131,12 +135,15 @@ state = {
 
 alarm_active = False
 
-
 def alarm():
 
     while alarm_active:
 
-        winsound.Beep(1000, 500)
+        if winsound is not None:
+            winsound.Beep(
+                1000,
+                500
+            )
 
         time.sleep(0.1)
 
