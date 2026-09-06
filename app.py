@@ -197,17 +197,21 @@ def video_frame_callback(frame):
 # CAMERA
 # ---------------------------------------------------------
 
-st.subheader("📷 Live Camera")
-
 ctx = webrtc_streamer(
     key="drowsiness-camera",
     video_frame_callback=video_frame_callback,
     media_stream_constraints={
         "video": True,
         "audio": False
+    },
+    rtc_configuration={
+        "iceServers": [
+            {
+                "urls": ["stun:stun.l.google.com:19302"]
+            }
+        ]
     }
 )
-
 
 # ---------------------------------------------------------
 # LIVE STATUS
