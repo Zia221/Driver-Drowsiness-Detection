@@ -204,17 +204,22 @@ rtc_configuration = {
             "urls": "stun:stun.relay.metered.ca:80"
         },
         {
-            "urls": "turn:standard.relay.metered.ca:80",
+            "urls": "turn:global.relay.metered.ca:80",
             "username": metered["username"],
             "credential": metered["credential"]
         },
         {
-            "urls": "turn:standard.relay.metered.ca:80?transport=tcp",
+            "urls": "turn:global.relay.metered.ca:80?transport=tcp",
             "username": metered["username"],
             "credential": metered["credential"]
         },
         {
-            "urls": "turns:standard.relay.metered.ca:443?transport=tcp",
+            "urls": "turn:global.relay.metered.ca:443",
+            "username": metered["username"],
+            "credential": metered["credential"]
+        },
+        {
+            "urls": "turns:global.relay.metered.ca:443?transport=tcp",
             "username": metered["username"],
             "credential": metered["credential"]
         }
