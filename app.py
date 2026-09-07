@@ -1,3 +1,4 @@
+import base64
 import time
 import threading
 
@@ -12,10 +13,6 @@ from streamlit_webrtc import webrtc_streamer
 
 from src.drowsiness_core import DrowsinessDetector
 
-
-# ---------------------------------------------------------
-# PAGE
-# ---------------------------------------------------------
 
 st.set_page_config(
     page_title="DrowsyGuard AI",
@@ -90,10 +87,6 @@ st.markdown(
 )
 
 
-# ---------------------------------------------------------
-# TITLE
-# ---------------------------------------------------------
-
 st.title("🚗 DrowsyGuard AI")
 
 st.markdown(
@@ -102,10 +95,6 @@ st.markdown(
 )
 
 
-# ---------------------------------------------------------
-# DETECTOR
-# ---------------------------------------------------------
-
 @st.cache_resource
 def load_detector():
     return DrowsinessDetector()
@@ -113,10 +102,6 @@ def load_detector():
 
 detector = load_detector()
 
-
-# ---------------------------------------------------------
-# SHARED STATE
-# ---------------------------------------------------------
 
 lock = threading.Lock()
 
@@ -130,30 +115,24 @@ state = {
 
 
 # ---------------------------------------------------------
-# ALARM
+# WINDOWS LOCAL ALARM
 # ---------------------------------------------------------
 
 alarm_active = False
 
+
 def alarm():
-
     while alarm_active:
-
         if winsound is not None:
-            winsound.Beep(
-                1000,
-                500
-            )
+            winsound.Beep(1000, 500)
 
         time.sleep(0.1)
 
 
 def start_alarm():
-
     global alarm_active
 
     if not alarm_active:
-
         alarm_active = True
 
         threading.Thread(
@@ -163,10 +142,28 @@ def start_alarm():
 
 
 def stop_alarm():
-
     global alarm_active
-
     alarm_active = False
+
+
+# ---------------------------------------------------------
+# BROWSER ALARM
+# ---------------------------------------------------------
+
+def play_browser_alarm():
+    with open("assets/alarm.mp3", "rb") as audio_file:
+        audio_data = base64.b64encode(
+            audio_file.read()
+        ).decode("utf-8")
+
+    return f"""
+    <audio autoplay loop>
+        <source
+            src="data:audio/mpeg;base64,{audio_data}"
+            type="audio/mpeg"
+        >
+    </audio>
+    """
 
 
 # ---------------------------------------------------------
@@ -174,7 +171,6 @@ def stop_alarm():
 # ---------------------------------------------------------
 
 def video_frame_callback(frame):
-
     image = frame.to_ndarray(format="bgr24")
 
     processed_frame, result = detector.process_frame(image)
@@ -191,6 +187,7 @@ def video_frame_callback(frame):
         processed_frame,
         format="bgr24"
     )
+
 
 # ---------------------------------------------------------
 # METERED TURN CONFIGURATION
@@ -219,6 +216,8 @@ ice_servers = [
 rtc_configuration = {
     "iceServers": ice_servers
 }
+
+
 # ---------------------------------------------------------
 # CAMERA
 # ---------------------------------------------------------
@@ -233,22 +232,32 @@ ctx = webrtc_streamer(
     frontend_rtc_configuration=rtc_configuration,
     server_rtc_configuration=rtc_configuration
 )
+
+
 # ---------------------------------------------------------
 # LIVE STATUS
 # ---------------------------------------------------------
 
 status_placeholder = st.empty()
 metrics_placeholder = st.empty()
+alarm_placeholder = st.empty()
 
 
 if ctx.state.playing:
-
     while ctx.state.playing:
 
         with lock:
             current = state.copy()
 
         status = current["status"]
+
+        if status == "DROWSY":
+            alarm_placeholder.markdown(
+                play_browser_alarm(),
+                unsafe_allow_html=True
+            )
+        else:
+            alarm_placeholder.empty()
 
         if status == "AWAKE":
             icon = "🟢"
@@ -269,7 +278,6 @@ if ctx.state.playing:
         status_placeholder.markdown(
             f"""
             <div class="status">
-
                 <div class="status-title">
                     DRIVER STATUS
                 </div>
@@ -281,7 +289,6 @@ if ctx.state.playing:
                 <div>
                     {message}
                 </div>
-
             </div>
             """,
             unsafe_allow_html=True
@@ -337,10 +344,6 @@ if ctx.state.playing:
 
         time.sleep(0.1)
 
-
-# ---------------------------------------------------------
-# FOOTER
-# ---------------------------------------------------------
 
 st.markdown(
     """
