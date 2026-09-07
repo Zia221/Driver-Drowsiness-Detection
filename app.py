@@ -198,34 +198,27 @@ def video_frame_callback(frame):
 
 metered = st.secrets["metered"]
 
-rtc_configuration = {
-    "iceServers": [
-        {
-            "urls": "stun:stun.relay.metered.ca:80"
-        },
-        {
-            "urls": "turn:global.relay.metered.ca:80",
-            "username": metered["username"],
-            "credential": metered["credential"]
-        },
-        {
-            "urls": "turn:global.relay.metered.ca:80?transport=tcp",
-            "username": metered["username"],
-            "credential": metered["credential"]
-        },
-        {
-            "urls": "turn:global.relay.metered.ca:443",
-            "username": metered["username"],
-            "credential": metered["credential"]
-        },
-        {
-            "urls": "turns:global.relay.metered.ca:443?transport=tcp",
-            "username": metered["username"],
-            "credential": metered["credential"]
-        }
-    ]
-}
+ice_servers = [
+    {
+        "urls": "turns:global.relay.metered.ca:443?transport=tcp",
+        "username": metered["username"],
+        "credential": metered["credential"]
+    },
+    {
+        "urls": "turn:global.relay.metered.ca:443?transport=tcp",
+        "username": metered["username"],
+        "credential": metered["credential"]
+    },
+    {
+        "urls": "turn:global.relay.metered.ca:80?transport=tcp",
+        "username": metered["username"],
+        "credential": metered["credential"]
+    }
+]
 
+rtc_configuration = {
+    "iceServers": ice_servers
+}
 # ---------------------------------------------------------
 # CAMERA
 # ---------------------------------------------------------
