@@ -157,11 +157,12 @@ def play_browser_alarm():
         ).decode("utf-8")
 
     return f"""
-    <audio autoplay loop>
+    <audio controls autoplay loop>
         <source
             src="data:audio/mpeg;base64,{audio_data}"
             type="audio/mpeg"
         >
+        Your browser does not support audio.
     </audio>
     """
 
