@@ -237,113 +237,108 @@ ctx = webrtc_streamer(
 
 # ---------------------------------------------------------
 # LIVE STATUS
+# --------------# ---------------------------------------------------------
+# LIVE STATUS
 # ---------------------------------------------------------
 
-status_placeholder = st.empty()
-metrics_placeholder = st.empty()
-alarm_placeholder = st.empty()
+@st.fragment(run_every=0.5)
+def render_live_status():
 
+    with lock:
+        current = state.copy()
 
-if ctx.state.playing:
-    while ctx.state.playing:
+    status = current["status"]
 
-        with lock:
-            current = state.copy()
+    if status == "DROWSY":
+        st.audio(
+            "assets/alarm.mp3",
+            format="audio/mpeg",
+            autoplay=True,
+            loop=True
+        )
 
-        status = current["status"]
+        icon = "🔴"
+        message = "Drowsiness detected! Please take a break."
 
-        if status == "DROWSY":
-            alarm_placeholder.markdown(
-                play_browser_alarm(),
-                unsafe_allow_html=True
-            )
-        else:
-            alarm_placeholder.empty()
+    elif status == "AWAKE":
+        icon = "🟢"
+        message = "Driver is alert."
 
-        if status == "AWAKE":
-            icon = "🟢"
-            message = "Driver is alert."
+    elif status == "EYES CLOSED":
+        icon = "🟡"
+        message = "Eyes are closed."
 
-        elif status == "EYES CLOSED":
-            icon = "🟡"
-            message = "Eyes are closed."
+    else:
+        icon = "⚪"
+        message = "Waiting for detection..."
 
-        elif status == "DROWSY":
-            icon = "🔴"
-            message = "Drowsiness detected! Please take a break."
+    st.markdown(
+        f"""
+        <div class="status">
+            <div class="status-title">
+                DRIVER STATUS
+            </div>
 
-        else:
-            icon = "⚪"
-            message = "Waiting for detection..."
+            <div class="status-value">
+                {icon} {status}
+            </div>
 
-        status_placeholder.markdown(
+            <div>
+                {message}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    cnn_confidence = (
+        current["left_prediction"]
+        + current["right_prediction"]
+    ) / 2
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown(
             f"""
-            <div class="status">
-                <div class="status-title">
-                    DRIVER STATUS
-                </div>
-
-                <div class="status-value">
-                    {icon} {status}
-                </div>
-
-                <div>
-                    {message}
+            <div class="metric">
+                <div class="metric-title">👁 EAR</div>
+                <div class="metric-value">
+                    {current["ear"]:.2f}
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        cnn_confidence = (
-            current["left_prediction"]
-            + current["right_prediction"]
-        ) / 2
+    with col2:
+        st.markdown(
+            f"""
+            <div class="metric">
+                <div class="metric-title">🧠 CNN Confidence</div>
+                <div class="metric-value">
+                    {cnn_confidence:.2f}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        with metrics_placeholder.container():
+    with col3:
+        st.markdown(
+            f"""
+            <div class="metric">
+                <div class="metric-title">⏱ Closed Frames</div>
+                <div class="metric-value">
+                    {current["closed_frames"]}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-            col1, col2, col3 = st.columns(3)
 
-            with col1:
-                st.markdown(
-                    f"""
-                    <div class="metric">
-                        <div class="metric-title">👁 EAR</div>
-                        <div class="metric-value">
-                            {current["ear"]:.2f}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-            with col2:
-                st.markdown(
-                    f"""
-                    <div class="metric">
-                        <div class="metric-title">🧠 CNN Confidence</div>
-                        <div class="metric-value">
-                            {cnn_confidence:.2f}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-            with col3:
-                st.markdown(
-                    f"""
-                    <div class="metric">
-                        <div class="metric-title">⏱ Closed Frames</div>
-                        <div class="metric-value">
-                            {current["closed_frames"]}
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-        time.sleep(0.1)
+render_live_status()
 
 
 st.markdown(
