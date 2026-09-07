@@ -237,9 +237,9 @@ ctx = webrtc_streamer(
         "video": True,
         "audio": False
     },
-    rtc_configuration=rtc_configuration
+    frontend_rtc_configuration=rtc_configuration,
+    server_rtc_configuration=rtc_configuration
 )
-
 # ---------------------------------------------------------
 # LIVE STATUS
 # ---------------------------------------------------------
